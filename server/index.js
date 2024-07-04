@@ -34,7 +34,7 @@ app.get('/api/deliveries', async (req, res) => {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: '1SKXKQw6QH1YBhD63foEPKyn_k12EHssNI-9bJZLc4SI',
-      range: 'Sheet1!A:F',
+      range: 'Sheet1!A:G',
     });
     const rows = response.data.values;
     if (rows.length) {
@@ -54,19 +54,18 @@ app.get('/api/deliveries', async (req, res) => {
 });
 
 app.post('/api/submit', async (req, res) => {
-  const { orderNumber, name, phoneNumber, deliveryAddress, deliveryDate } = req.body;
-  const submissionDate = new Date().toISOString().split('T')[0]; // Get the current date
+  const {submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate,} = req.body;
 
   console.log('Received request:', req.body);
 
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: '1SKXKQw6QH1YBhD63foEPKyn_k12EHssNI-9bJZLc4SI',
-      range: 'Sheet1!A1:F1',
+      range: 'Sheet1!A1:G1',
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: [
-          [submissionDate, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate]
+          [submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate]
         ],
       },
     });
