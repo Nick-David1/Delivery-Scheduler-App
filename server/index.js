@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
+const { addDays, format, isAfter, startOfDay, getHours, getDay } = require('date-fns');
 
 dotenv.config();
 
@@ -30,37 +31,65 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: 'v4', auth });
 
-app.get('/api/deliveries', async (req, res) => {
+const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
+
+const getAllowedDateWindow = () => {
+  const today = new Date();
+  const currentHour = getHours(today);
+  const daysToAdd = currentHour >= 19 ? 4 : 3;
+  const start = today;
+  const end = addDays(today, daysToAdd);
+  return { start, end };
+};
+
+const isSunday = (date) => getDay(date) === 0;
+
+app.get('/api/unavailable-dates', async (req, res) => {
+  const { start, end } = getAllowedDateWindow();
   try {
     const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: '1SKXKQw6QH1YBhD63foEPKyn_k12EHssNI-9bJZLc4SI',
-      range: 'Sheet1!A:G',
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: 'Sheet1!A2:F', // Assuming data starts from row 2
     });
     const rows = response.data.values;
     if (rows.length) {
-      const headers = rows[0];
-      const deliveryDateIndex = headers.indexOf('Delivery Date');
-      const deliveries = rows.slice(1).map(row => ({
-        deliveryDate: row[deliveryDateIndex],
-      }));
-      res.json(deliveries);
+      const dateCountMap = {};
+      rows.forEach(row => {
+        const deliveryDate = row[5]; // Assuming delivery date is in the 6th column
+        const deliveryDateObj = new Date(deliveryDate);
+        if (isAfter(startOfDay(deliveryDateObj), startOfDay(end)) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
+        if (dateCountMap[deliveryDate]) {
+          dateCountMap[deliveryDate]++;
+        } else {
+          dateCountMap[deliveryDate] = 1;
+        }
+      });
+      const unavailableDates = Object.keys(dateCountMap).filter(date => dateCountMap[date] >= 8);
+      res.json({ unavailableDates });
     } else {
-      res.json([]);
+      res.json({ unavailableDates: [] });
     }
   } catch (error) {
-    console.error('Error fetching deliveries:', error);
-    res.status(500).json({ message: 'Error fetching deliveries' });
+    console.error('Error fetching unavailable dates:', error);
+    res.status(500).json({ message: 'Error fetching unavailable dates' });
   }
 });
 
 app.post('/api/submit', async (req, res) => {
-  const {submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate,} = req.body;
+  const { submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate } = req.body;
+
+  const { start, end } = getAllowedDateWindow();
+  const selectedDate = new Date(deliveryDate);
+
+  if (isAfter(startOfDay(selectedDate), startOfDay(end)) || isSunday(selectedDate)) {
+    return res.status(400).json({ message: 'Delivery date must be within the next allowed days and cannot be a Sunday' });
+  }
 
   console.log('Received request:', req.body);
 
   try {
     const response = await sheets.spreadsheets.values.append({
-      spreadsheetId: '1SKXKQw6QH1YBhD63foEPKyn_k12EHssNI-9bJZLc4SI',
+      spreadsheetId: GOOGLE_SHEET_ID,
       range: 'Sheet1!A1:G1',
       valueInputOption: 'USER_ENTERED',
       resource: {

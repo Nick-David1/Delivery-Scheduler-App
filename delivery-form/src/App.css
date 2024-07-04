@@ -1,6 +1,9 @@
+
+
 .App {
-  text-align: center;
+  text-align: left;
   margin: 50px;
+  
 }
 
 form {
@@ -14,18 +17,26 @@ form {
 input {
   width: calc(100% - 20px);
   padding: 10px;
-  margin: 10px 0;
+  margin: 10px 0 24px 0; /* Adjusted margin to add 5px at the bottom */
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
+
+input:focus {
+  outline: none;
+  border-color: #65c358;
+  border-width: 1px
+}
+
 button {
   padding: 10px 20px;
-  background-color: green;
   color: white;
   border: none;
   border-radius: 5px;
+  background-color: #65c358;
   cursor: pointer;
+  font-weight: bold;
 }
 
 button:disabled {
@@ -40,14 +51,19 @@ button:disabled {
 .name-fields {
   display: flex;
   gap: 10px;
-  margin-bottom: 10px;
 }
 
-.name-fields input {
-  flex: 1;
-  width: 50%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.react-datepicker__day--selected {
+  background-color: #65c358 !important;
+  font-weight: bold !important;
 }
 
+label {
+  font-weight:bold;
+}
+
+.react-datepicker__day--today {
+  background-color: transparent !important;
+  border-width: 1px !important;
+  border-color: #65c358 !important;
+}
