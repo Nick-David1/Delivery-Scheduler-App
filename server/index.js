@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
-const { addDays, format, isAfter, startOfDay, getHours, getDay } = require('date-fns');
+const { addDays, format, isAfter, startOfDay, getHours, getDay, isBefore } = require('date-fns');
 
 dotenv.config();
 
@@ -33,7 +33,6 @@ const sheets = google.sheets({ version: 'v4', auth });
 
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 
-
 const getAllowedDateWindow = () => {
   const today = new Date();
   const currentHour = getHours(today);
@@ -47,6 +46,7 @@ const isSunday = (date) => getDay(date) === 0;
 
 app.get('/api/unavailable-dates', async (req, res) => {
   const { start, end } = getAllowedDateWindow();
+  console.log(`Allowed date window: Start - ${start}, End - ${end}`);
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
@@ -58,7 +58,8 @@ app.get('/api/unavailable-dates', async (req, res) => {
       rows.forEach(row => {
         const deliveryDate = row[5]; // Assuming delivery date is in the 6th column
         const deliveryDateObj = new Date(deliveryDate);
-        if (isAfter(startOfDay(deliveryDateObj), startOfDay(end)) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
+        console.log(`Checking delivery date: ${deliveryDateObj}`);
+        if (isAfter(startOfDay(deliveryDateObj), startOfDay(end)) || isBefore(startOfDay(deliveryDateObj), startOfDay(start)) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
         if (dateCountMap[deliveryDate]) {
           dateCountMap[deliveryDate]++;
         } else {
@@ -66,6 +67,7 @@ app.get('/api/unavailable-dates', async (req, res) => {
         }
       });
       const unavailableDates = Object.keys(dateCountMap).filter(date => dateCountMap[date] >= 8);
+      console.log(`Unavailable dates: ${unavailableDates}`);
       res.json({ unavailableDates });
     } else {
       res.json({ unavailableDates: [] });
@@ -82,7 +84,12 @@ app.post('/api/submit', async (req, res) => {
   const { start, end } = getAllowedDateWindow();
   const selectedDate = new Date(deliveryDate);
 
-  if (isAfter(startOfDay(selectedDate), startOfDay(end)) || isSunday(selectedDate)) {
+  console.log(`Selected date: ${selectedDate}`);
+  console.log(`Start of allowed window: ${start}`);
+  console.log(`End of allowed window: ${end}`);
+
+  if (isAfter(startOfDay(selectedDate), startOfDay(end)) || isBefore(startOfDay(selectedDate), startOfDay(start)) || isSunday(selectedDate)) {
+    console.log('Date validation failed.');
     return res.status(400).json({ message: 'Delivery date must be within the next allowed days and cannot be a Sunday' });
   }
 

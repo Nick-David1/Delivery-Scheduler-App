@@ -95,3 +95,38 @@ label.required::after {
   border-color: #65c358 !important;
   font-family: 'Montserrat', sans-serif; 
 }
+
+
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker {
+  font-family: 'Montserrat', sans-serif; 
+}
+
+.react-datepicker__input-container input {
+  width: 100%;
+  padding: 10px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.react-datepicker__input-container input.error {
+  border-color: red;
+}
+
+.react-datepicker__header,
+.react-datepicker__month,
+.react-datepicker__day,
+.react-datepicker__current-month,
+.react-datepicker__navigation-icon,
+.react-datepicker__navigation,
+.react-datepicker__triangle,
+.react-datepicker__time-container,
+.react-datepicker__time,
+.react-datepicker__time-box,
+.react-datepicker-time__header,
+.react-datepicker__time-list-item {
+  font-family: 'Montserrat', sans-serif; 
+}
