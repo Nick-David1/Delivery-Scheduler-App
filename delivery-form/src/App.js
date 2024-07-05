@@ -1,21 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { format, addDays, getHours, getDay } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import Script from 'react-load-script';
+import InputMask from 'react-input-mask';
 
 function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [streetAddress2, setStreetAddress2] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [unavailableDates, setUnavailableDates] = useState([]);
-  const addressInputRef = useRef(null);
+  const [addressSelected, setAddressSelected] = useState(false);
 
   useEffect(() => {
     const fetchUnavailableDates = async () => {
@@ -29,61 +33,122 @@ function App() {
       }
     };
     fetchUnavailableDates();
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&libraries=places&callback=initAutocomplete`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+    script.addEventListener('load', () => {
+      console.log('Google Maps script loaded');
+      if (window.google) {
+        console.log('Google Maps available');
+        initAutocomplete();
+      }
+    });
   }, []);
 
-  const handleScriptLoad = useCallback(() => {
-    console.log('Google Maps script loaded');
-    if (window.google) {
-      console.log('Google Maps available');
-      const autocomplete = new window.google.maps.places.Autocomplete(addressInputRef.current, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-      });
+  const initAutocomplete = () => {
+    const input = document.getElementById('streetAddress');
+    const options = {
+      componentRestrictions: { country: 'us' },
+      fields: ['address_components', 'geometry', 'icon', 'name'],
+      types: ['address'],
+    };
+    const autocomplete = new window.google.maps.places.Autocomplete(input, options);
 
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        console.log('Place selected:', place);
-        setDeliveryAddress(place.formatted_address);
-      });
-    } else {
-      console.error('Google Maps not available');
-    }
-  }, []);
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.address_components) {
+        const addressComponents = place.address_components;
+        const getAddressComponent = (type) =>
+          addressComponents.find(component => component.types.includes(type))?.long_name || '';
+        
+        setStreetAddress(`${getAddressComponent('street_number')} ${getAddressComponent('route')}`);
+        setCity(getAddressComponent('locality'));
+        setState(getAddressComponent('administrative_area_level_1'));
+        setZipCode(getAddressComponent('postal_code'));
+        setAddressSelected(true);
+      }
+    });
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (!orderNumber || !firstName || !lastName || !phoneNumber || !deliveryAddress || !deliveryDate) {
-      setError('All fields are required.');
-    } else {
-      setError('');
-      setSuccessMessage('');
-      const name = `${firstName} ${lastName}`;
-      const submissionDateTime = format(new Date(), "yyyy-MM-dd hh:mm a");
-      // Send data to the server
-      fetch('http://localhost:5001/api/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderNumber,
-          name,
-          phoneNumber,
-          deliveryAddress,
-          deliveryDate: format(deliveryDate, "yyyy-MM-dd"),
-          submissionDateTime
-        }),
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-        setSuccessMessage('Order details submitted successfully!');
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        setError('Error submitting order details.');
-      });
+    let hasError = false;
+
+    const requiredFields = [
+      { id: 'orderNumber', value: orderNumber },
+      { id: 'firstName', value: firstName },
+      { id: 'lastName', value: lastName },
+      { id: 'phoneNumber', value: phoneNumber },
+      { id: 'streetAddress', value: streetAddress },
+      { id: 'city', value: city },
+      { id: 'state', value: state },
+      { id: 'zipCode', value: zipCode },
+      { id: 'deliveryDate', value: deliveryDate },
+    ];
+
+    requiredFields.forEach(field => {
+      const element = document.getElementById(field.id);
+      if (!field.value) {
+        element?.classList.add('error');
+        hasError = true;
+      } else {
+        element?.classList.remove('error');
+      }
+    });
+
+    if (!addressSelected) {
+      setError('Please use the autocomplete feature to select an address.');
+      document.getElementById('streetAddress')?.classList.add('error');
+      hasError = true;
     }
+
+    if (!deliveryDate) {
+      setError('Please select a delivery date.');
+      document.getElementById('deliveryDate')?.classList.add('error');
+      hasError = true;
+    }
+
+    if (hasError) {
+      return;
+    }
+
+    setError('');
+    setSuccessMessage('');
+    const name = `${firstName} ${lastName}`;
+    const deliveryAddress = `${streetAddress} ${streetAddress2}, ${city}, ${state}, ${zipCode}`;
+    const submissionDateTime = format(new Date(), "yyyy-MM-dd hh:mm a");
+    // Send data to the server
+    fetch('http://localhost:5001/api/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderNumber,
+        name,
+        phoneNumber,
+        deliveryAddress,
+        deliveryDate: format(deliveryDate, "yyyy-MM-dd"),
+        submissionDateTime
+      }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      setSuccessMessage('Order details submitted successfully!');
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      setError('Error submitting order details.');
+    });
+  };
+
+  const handleInputChange = (setter, id) => (event) => {
+    setter(event.target.value);
+    document.getElementById(id)?.classList.remove('error');
   };
 
   const isDateSelectable = (date) => {
@@ -108,62 +173,112 @@ function App() {
 
   return (
     <div className="App">
-      <Script
-        url={`https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_API_KEY}&libraries=places`}
-        onLoad={handleScriptLoad}
-        onError={() => console.error('Google Maps script failed to load')}
-      />
       <form onSubmit={handleSubmit}>
-        <label htmlFor="orderNumber">Order #</label>
+        <label htmlFor="orderNumber" className="required">Order #</label>
         <input
           type="text"
           id="orderNumber"
           value={orderNumber}
-          onChange={(e) => setOrderNumber(e.target.value)}
+          onChange={handleInputChange(setOrderNumber, 'orderNumber')}
         />
         
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name" className="required">Name</label>
         <div className="name-fields">
           <input
             type="text"
             id="firstName"
             placeholder="First Name"
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={handleInputChange(setFirstName, 'firstName')}
           />
           <input
             type="text"
             id="lastName"
             placeholder="Last Name"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={handleInputChange(setLastName, 'lastName')}
           />
         </div>
 
-        <label htmlFor="phoneNumber">Phone Number</label>
-        <input
-          type="text"
-          id="phoneNumber"
-          placeholder="(___)___-___"
+        <label htmlFor="phoneNumber" className="required">Phone Number</label>
+        <InputMask
+          mask="(999) 999-9999"
           value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-        />
+          onChange={handleInputChange(setPhoneNumber, 'phoneNumber')}
+          maskChar="_"
+        >
+          {() => <input
+            type="text"
+            id="phoneNumber"
+            placeholder="(___) ___-____"
+          />}
+        </InputMask>
 
-        <label htmlFor="deliveryAddress">Delivery Address</label>
+        <label htmlFor="streetAddress" className="required">Street Address</label>
         <input
           type="text"
-          id="deliveryAddress"
+          id="streetAddress"
           placeholder="Enter a location"
-          value={deliveryAddress}
-          ref={addressInputRef}
-          onChange={(e) => setDeliveryAddress(e.target.value)}
+          value={streetAddress}
+          onChange={handleInputChange(setStreetAddress, 'streetAddress')}
         />
 
-        <label htmlFor="deliveryDate">Delivery Date</label>
+        {addressSelected && (
+          <>
+            <div className="address-fields">
+              <div className="address-field">
+                <label htmlFor="streetAddress2">Address Line 2</label>
+                <input
+                  type="text"
+                  id="streetAddress2"
+                  value={streetAddress2}
+                  onChange={(e) => setStreetAddress2(e.target.value)}
+                />
+              </div>
+
+              <div className="address-field">
+                <label htmlFor="city" className="required">City</label>
+                <input
+                  type="text"
+                  id="city"
+                  value={city}
+                  onChange={handleInputChange(setCity, 'city')}
+                />
+              </div>
+            </div>
+
+            <div className="address-fields">
+              <div className="address-field">
+                <label htmlFor="state" className="required">State / Province</label>
+                <input
+                  type="text"
+                  id="state"
+                  value={state}
+                  onChange={handleInputChange(setState, 'state')}
+                />
+              </div>
+
+              <div className="address-field">
+                <label htmlFor="zipCode" className="required">Postal / Zip Code</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  value={zipCode}
+                  onChange={handleInputChange(setZipCode, 'zipCode')}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        <label htmlFor="deliveryDate" className="required">Delivery Date</label>
         <div>
           <DatePicker
             selected={deliveryDate}
-            onChange={(date) => setDeliveryDate(date)}
+            onChange={(date) => {
+              setDeliveryDate(date);
+              document.getElementById('deliveryDate')?.classList.remove('error');
+            }}
             filterDate={isDateSelectable}
             inline
           />

@@ -1,9 +1,7 @@
-
-
 .App {
   text-align: left;
   margin: 50px;
-  
+  font-family: 'Montserrat', sans-serif; 
 }
 
 form {
@@ -12,21 +10,27 @@ form {
   border-radius: 5px;
   max-width: 400px;
   margin: 0 auto;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 input {
   width: calc(100% - 20px);
   padding: 10px;
-  margin: 10px 0 24px 0; /* Adjusted margin to add 5px at the bottom */
+  margin: 10px 0 24px 0; 
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-family: 'Montserrat', sans-serif; 
 }
-
 
 input:focus {
   outline: none;
   border-color: #65c358;
-  border-width: 1px
+  border-width: 1px;
+  font-family: 'Montserrat', sans-serif; 
+}
+
+input.error {
+  border-color: red;
 }
 
 button {
@@ -37,33 +41,57 @@ button {
   background-color: #65c358;
   cursor: pointer;
   font-weight: bold;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 button:disabled {
   background-color: grey;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 .error {
   color: red;
   margin: 10px 0;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 .name-fields {
   display: flex;
   gap: 10px;
+  font-family: 'Montserrat', sans-serif; 
+}
+
+.address-fields {
+  display: flex;
+  gap: 10px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.address-field {
+  flex: 1;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 .react-datepicker__day--selected {
   background-color: #65c358 !important;
   font-weight: bold !important;
+  font-family: 'Montserrat', sans-serif; 
 }
 
 label {
-  font-weight:bold;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif; 
+}
+
+label.required::after {
+  content: '*';
+  color: red;
+  margin-left: 5px;
 }
 
 .react-datepicker__day--today {
   background-color: transparent !important;
   border-width: 1px !important;
   border-color: #65c358 !important;
+  font-family: 'Montserrat', sans-serif; 
 }
