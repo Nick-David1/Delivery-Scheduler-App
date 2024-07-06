@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { format, addDays, getHours, getDay } from 'date-fns';
+import { format, addDays, getHours, getDay, startOfDay } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import InputMask from 'react-input-mask';
@@ -119,7 +119,7 @@ function App() {
     setSuccessMessage('');
     const name = `${firstName} ${lastName}`;
     const deliveryAddress = `${streetAddress} ${streetAddress2}, ${city}, ${state}, ${zipCode}`;
-    const submissionDateTime = format(new Date(), "yyyy-MM-dd hh:mm a");
+    const submissionDateTime = format(new Date(), "yyyy-MM-dd HH:mm a");
     // Send data to the server
     fetch('http://localhost:5001/api/submit', {
       method: 'POST',
@@ -131,7 +131,7 @@ function App() {
         name,
         phoneNumber,
         deliveryAddress,
-        deliveryDate: format(deliveryDate, "yyyy-MM-dd"),
+        deliveryDate: format(startOfDay(new Date(deliveryDate)), "yyyy-MM-dd"), // Ensure the date is sent as start of the day
         submissionDateTime
       }),
     })
@@ -159,16 +159,17 @@ function App() {
     const today = new Date();
     const currentHour = getHours(today);
     const daysToAdd = currentHour >= 19 ? 4 : 3;
-    const threeDaysAhead = addDays(today, daysToAdd);
+    const start = startOfDay(today);
+    const end = startOfDay(addDays(today, daysToAdd));
 
     if (currentHour >= 19 && format(date, "yyyy-MM-dd") === format(addDays(today, 1), "yyyy-MM-dd")) {
       return false;
     }
 
-    const formattedDate = format(date, "yyyy-MM-dd");
+    const formattedDate = format(startOfDay(date), "yyyy-MM-dd");
     const isUnavailable = unavailableDates.includes(formattedDate);
     const isSunday = getDay(date) === 0;
-    return date >= addDays(today, 1) && date <= threeDaysAhead && !isUnavailable && !isSunday;
+    return date >= addDays(today, 1) && date <= end && !isUnavailable && !isSunday;
   };
 
   return (
@@ -276,7 +277,7 @@ function App() {
           <DatePicker
             selected={deliveryDate}
             onChange={(date) => {
-              setDeliveryDate(date);
+              setDeliveryDate(startOfDay(date)); // Ensure the date is set to start of the day
               document.getElementById('deliveryDate')?.classList.remove('error');
             }}
             filterDate={isDateSelectable}

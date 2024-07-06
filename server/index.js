@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
-const { addDays, format, isAfter, startOfDay, getHours, getDay, isBefore } = require('date-fns');
+const { addDays, format, isAfter, startOfDay, getHours, getDay, isBefore, parseISO } = require('date-fns');
 
 dotenv.config();
 
@@ -37,8 +37,8 @@ const getAllowedDateWindow = () => {
   const today = new Date();
   const currentHour = getHours(today);
   const daysToAdd = currentHour >= 19 ? 4 : 3;
-  const start = today;
-  const end = addDays(today, daysToAdd);
+  const start = startOfDay(today);
+  const end = startOfDay(addDays(today, daysToAdd));
   return { start, end };
 };
 
@@ -57,9 +57,9 @@ app.get('/api/unavailable-dates', async (req, res) => {
       const dateCountMap = {};
       rows.forEach(row => {
         const deliveryDate = row[5]; // Assuming delivery date is in the 6th column
-        const deliveryDateObj = new Date(deliveryDate);
+        const deliveryDateObj = parseISO(deliveryDate);
         console.log(`Checking delivery date: ${deliveryDateObj}`);
-        if (isAfter(startOfDay(deliveryDateObj), startOfDay(end)) || isBefore(startOfDay(deliveryDateObj), startOfDay(start)) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
+        if (isAfter(deliveryDateObj, end) || isBefore(deliveryDateObj, start) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
         if (dateCountMap[deliveryDate]) {
           dateCountMap[deliveryDate]++;
         } else {
@@ -82,13 +82,13 @@ app.post('/api/submit', async (req, res) => {
   const { submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate } = req.body;
 
   const { start, end } = getAllowedDateWindow();
-  const selectedDate = new Date(deliveryDate);
+  const selectedDate = parseISO(deliveryDate);
 
   console.log(`Selected date: ${selectedDate}`);
   console.log(`Start of allowed window: ${start}`);
   console.log(`End of allowed window: ${end}`);
 
-  if (isAfter(startOfDay(selectedDate), startOfDay(end)) || isBefore(startOfDay(selectedDate), startOfDay(start)) || isSunday(selectedDate)) {
+  if (isAfter(selectedDate, end) || isBefore(selectedDate, start) || isSunday(selectedDate)) {
     console.log('Date validation failed.');
     return res.status(400).json({ message: 'Delivery date must be within the next allowed days and cannot be a Sunday' });
   }
