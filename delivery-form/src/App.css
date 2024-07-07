@@ -13,7 +13,7 @@ form {
   font-family: 'Montserrat', sans-serif; 
 }
 
-input {
+input, textarea {
   width: calc(100% - 20px);
   padding: 10px;
   margin: 10px 0 24px 0; 
@@ -22,14 +22,14 @@ input {
   font-family: 'Montserrat', sans-serif; 
 }
 
-input:focus {
+input:focus, textarea:focus {
   outline: none;
   border-color: #65c358;
   border-width: 1px;
   font-family: 'Montserrat', sans-serif; 
 }
 
-input.error {
+input.error, textarea.error {
   border-color: red;
 }
 
@@ -52,6 +52,10 @@ button:disabled {
 .error {
   color: red;
   margin: 10px 0;
+  font-family: 'Montserrat', sans-serif; 
+}
+
+.success {
   font-family: 'Montserrat', sans-serif; 
 }
 
@@ -96,8 +100,6 @@ label.required::after {
   font-family: 'Montserrat', sans-serif; 
 }
 
-
-
 .react-datepicker-wrapper {
   width: 100%;
 }
@@ -119,6 +121,7 @@ label.required::after {
 .react-datepicker__header,
 .react-datepicker__month,
 .react-datepicker__day,
+.react-datepicker__day-name,
 .react-datepicker__current-month,
 .react-datepicker__navigation-icon,
 .react-datepicker__navigation,
@@ -129,4 +132,33 @@ label.required::after {
 .react-datepicker-time__header,
 .react-datepicker__time-list-item {
   font-family: 'Montserrat', sans-serif; 
+}
+
+.contactless-delivery {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Adjust gap to bring text closer to the checkbox */
+  margin: 10px 0;
+}
+
+.contactless-delivery input[type="checkbox"] {
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  padding-right: 1rem;
+  border: none; /* Remove default border */
+  outline: none; /* Remove outline if any */
+  width: auto; /* Ensure checkbox maintains its size */
+  height: auto; /* Ensure checkbox maintains its size */
+}
+  
+.delivery-instructions {
+  margin-top: 10px;
+}
+
+textarea {
+  width: calc(100% - 20px);
+  height: 80px; /* Adjust this height as needed */
+  font-family: 'Montserrat', sans-serif; 
+  resize: vertical; /* Allow vertical resize only */
+  max-height: 200px; /* Limit maximum height */
 }

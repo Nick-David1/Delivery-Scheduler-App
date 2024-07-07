@@ -50,13 +50,13 @@ app.get('/api/unavailable-dates', async (req, res) => {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A2:F', // Assuming data starts from row 2
+      range: 'Sheet1!A2:I', // Adjusted to match the new column count
     });
     const rows = response.data.values;
     if (rows.length) {
       const dateCountMap = {};
       rows.forEach(row => {
-        const deliveryDate = row[5]; // Assuming delivery date is in the 6th column
+        const deliveryDate = row[6]; // Assuming delivery date is now in the 7th column
         const deliveryDateObj = parseISO(deliveryDate);
         console.log(`Checking delivery date: ${deliveryDateObj}`);
         if (isAfter(deliveryDateObj, end) || isBefore(deliveryDateObj, start) || isSunday(deliveryDateObj)) return; // Skip dates beyond the window or Sundays
@@ -79,7 +79,9 @@ app.get('/api/unavailable-dates', async (req, res) => {
 });
 
 app.post('/api/submit', async (req, res) => {
-  const { submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate } = req.body;
+  const { submissionDateTime, orderNumber, name, email, phoneNumber, deliveryAddress, deliveryDate, contactlessDelivery, deliveryInstructions } = req.body;
+
+  console.log('Received data:', req.body); // Debugging
 
   const { start, end } = getAllowedDateWindow();
   const selectedDate = parseISO(deliveryDate);
@@ -98,11 +100,11 @@ app.post('/api/submit', async (req, res) => {
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A1:G1',
+      range: 'Sheet1!A1:J1', // Adjusted to match the new column count
       valueInputOption: 'USER_ENTERED',
       resource: {
         values: [
-          [submissionDateTime, orderNumber, name, phoneNumber, deliveryAddress, deliveryDate]
+          [submissionDateTime, orderNumber, name, email, phoneNumber, deliveryAddress, deliveryDate, contactlessDelivery, deliveryInstructions]
         ],
       },
     });

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { format, addDays, getHours, getDay, startOfDay } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import InputMask from 'react-input-mask';
+
+const TIMEZONE = 'America/Denver';
 
 function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState(''); 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [streetAddress, setStreetAddress] = useState('');
   const [streetAddress2, setStreetAddress2] = useState('');
@@ -20,6 +24,8 @@ function App() {
   const [successMessage, setSuccessMessage] = useState('');
   const [unavailableDates, setUnavailableDates] = useState([]);
   const [addressSelected, setAddressSelected] = useState(false);
+  const [contactlessDelivery, setContactlessDelivery] = useState(false);
+  const [deliveryInstructions, setDeliveryInstructions] = useState('');
 
   useEffect(() => {
     const fetchUnavailableDates = async () => {
@@ -81,6 +87,7 @@ function App() {
       { id: 'orderNumber', value: orderNumber },
       { id: 'firstName', value: firstName },
       { id: 'lastName', value: lastName },
+      { id: 'email', value: email },
       { id: 'phoneNumber', value: phoneNumber },
       { id: 'streetAddress', value: streetAddress },
       { id: 'city', value: city },
@@ -92,6 +99,7 @@ function App() {
     requiredFields.forEach(field => {
       const element = document.getElementById(field.id);
       if (!field.value) {
+        setError('* fields are required');
         element?.classList.add('error');
         hasError = true;
       } else {
@@ -120,20 +128,29 @@ function App() {
     const name = `${firstName} ${lastName}`;
     const deliveryAddress = `${streetAddress} ${streetAddress2}, ${city}, ${state}, ${zipCode}`;
     const submissionDateTime = format(new Date(), "yyyy-MM-dd HH:mm a");
+    const zonedDeliveryDate = formatInTimeZone(deliveryDate, TIMEZONE, "yyyy-MM-dd");
+
+    const postData = {
+      orderNumber,
+      name,
+      email, 
+      phoneNumber,
+      deliveryAddress,
+      deliveryDate: zonedDeliveryDate,
+      submissionDateTime,
+      contactlessDelivery: contactlessDelivery ? 'Yes' : 'No',
+      deliveryInstructions
+    };
+
+    console.log('Posting data:', postData); // Debugging
+
     // Send data to the server
     fetch('http://localhost:5001/api/submit', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        orderNumber,
-        name,
-        phoneNumber,
-        deliveryAddress,
-        deliveryDate: format(startOfDay(new Date(deliveryDate)), "yyyy-MM-dd"), // Ensure the date is sent as start of the day
-        submissionDateTime
-      }),
+      body: JSON.stringify(postData),
     })
     .then(response => response.json())
     .then(data => {
@@ -151,6 +168,18 @@ function App() {
     document.getElementById(id)?.classList.remove('error');
   };
 
+  const handleOrderNumberChange = (event) => {
+    const value = event.target.value.replace(/\D/g, '');
+    setOrderNumber(value);
+  };
+
+  const handleDeliveryInstructionsChange = (event) => {
+    const words = event.target.value.split(' ');
+    if (words.length <= 250) {
+      setDeliveryInstructions(event.target.value);
+    }
+  };
+
   const isDateSelectable = (date) => {
     if (!Array.isArray(unavailableDates)) {
       return false; // Ensure unavailableDates is an array
@@ -159,7 +188,6 @@ function App() {
     const today = new Date();
     const currentHour = getHours(today);
     const daysToAdd = currentHour >= 19 ? 4 : 3;
-    const start = startOfDay(today);
     const end = startOfDay(addDays(today, daysToAdd));
 
     if (currentHour >= 19 && format(date, "yyyy-MM-dd") === format(addDays(today, 1), "yyyy-MM-dd")) {
@@ -180,7 +208,7 @@ function App() {
           type="text"
           id="orderNumber"
           value={orderNumber}
-          onChange={handleInputChange(setOrderNumber, 'orderNumber')}
+          onChange={handleOrderNumberChange}
         />
         
         <label htmlFor="name" className="required">Name</label>
@@ -200,6 +228,15 @@ function App() {
             onChange={handleInputChange(setLastName, 'lastName')}
           />
         </div>
+
+        <label htmlFor="email" className="required">Email</label> {}
+        <input
+          type="email"
+          id="email"
+          placeholder="Enter valid email"
+          value={email}
+          onChange={handleInputChange(setEmail, 'email')}
+        />
 
         <label htmlFor="phoneNumber" className="required">Phone Number</label>
         <InputMask
@@ -272,7 +309,7 @@ function App() {
           </>
         )}
 
-        <label htmlFor="deliveryDate" className="required">Delivery Date</label>
+        <label htmlFor="deliveryDate" className="required label-with-padding">Delivery Date</label>
         <div>
           <DatePicker
             selected={deliveryDate}
@@ -284,6 +321,28 @@ function App() {
             inline
           />
         </div>
+
+        <div className="contactless-delivery">
+          <input
+            type="checkbox"
+            id="contactlessDelivery"
+            checked={contactlessDelivery}
+            onChange={() => setContactlessDelivery(!contactlessDelivery)}
+          />
+          <label htmlFor="contactlessDelivery">Contactless Delivery?</label>
+        </div>
+
+        {contactlessDelivery && (
+          <div className="delivery-instructions">
+            <label htmlFor="deliveryInstructions">Delivery Instructions</label>
+            <textarea
+              id="deliveryInstructions"
+              value={deliveryInstructions}
+              onChange={handleDeliveryInstructionsChange}
+              maxLength={1000}
+            />
+          </div>
+        )}
 
         {error && <div className="error">{error}</div>}
         {successMessage && <div className="success">{successMessage}</div>}
