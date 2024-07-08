@@ -79,7 +79,7 @@ function App() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     let hasError = false;
 
@@ -145,22 +145,21 @@ function App() {
     console.log('Posting data:', postData); // Debugging
 
     // Send data to the server
-    fetch('http://localhost:5001/api/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(postData),
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+      const response = await fetch('http://localhost:5001/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      });
+      const data = await response.json();
       console.log('Success:', data);
       setSuccessMessage('Order details submitted successfully!');
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error('Error:', error);
       setError('Error submitting order details.');
-    });
+    }
   };
 
   const handleInputChange = (setter, id) => (event) => {
@@ -229,7 +228,7 @@ function App() {
           />
         </div>
 
-        <label htmlFor="email" className="required">Email</label> {}
+        <label htmlFor="email" className="required">Email</label>
         <input
           type="email"
           id="email"

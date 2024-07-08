@@ -50,7 +50,7 @@ app.get('/api/unavailable-dates', async (req, res) => {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A2:I', // Adjusted to match the new column count
+      range: 'Sheet1!A2:J', // Adjusted to match the new column count
     });
     const rows = response.data.values;
     if (rows.length) {
@@ -95,20 +95,53 @@ app.post('/api/submit', async (req, res) => {
     return res.status(400).json({ message: 'Delivery date must be within the next allowed days and cannot be a Sunday' });
   }
 
-  console.log('Received request:', req.body);
-
   try {
-    const response = await sheets.spreadsheets.values.append({
+    const existingResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A1:J1', // Adjusted to match the new column count
-      valueInputOption: 'USER_ENTERED',
-      resource: {
-        values: [
-          [submissionDateTime, orderNumber, name, email, phoneNumber, deliveryAddress, deliveryDate, contactlessDelivery, deliveryInstructions]
-        ],
-      },
+      range: 'Sheet1!A2:J',
     });
-    console.log('Response from Sheets API:', response.data); 
+    const rows = existingResponse.data.values || [];
+
+    let updated = false;
+    const updatedRows = rows.map(row => {
+      if (row[1] === orderNumber && row[3] === email) {
+        updated = true;
+        return [submissionDateTime, orderNumber, name, email, phoneNumber, deliveryAddress, deliveryDate, contactlessDelivery, deliveryInstructions];
+      }
+      return row;
+    });
+
+    if (updated) {
+      // Clear the sheet
+      await sheets.spreadsheets.values.clear({
+        spreadsheetId: GOOGLE_SHEET_ID,
+        range: 'Sheet1!A2:J',
+      });
+
+      // Write the updated rows
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: GOOGLE_SHEET_ID,
+        range: 'Sheet1!A2',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: updatedRows,
+        },
+      });
+    } else {
+      // Append new entry
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: GOOGLE_SHEET_ID,
+        range: 'Sheet1!A1:J1', // Adjusted to match the new column count
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: [
+            [submissionDateTime, orderNumber, name, email, phoneNumber, deliveryAddress, deliveryDate, contactlessDelivery, deliveryInstructions]
+          ],
+        },
+      });
+    }
+
+    console.log('Response from Sheets API:', existingResponse.data);
     res.json({ message: 'Order details submitted successfully' });
   } catch (error) {
     console.error('Error submitting order details:', error);

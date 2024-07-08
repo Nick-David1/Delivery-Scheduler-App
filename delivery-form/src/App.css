@@ -5,7 +5,6 @@
 }
 
 form {
-  border: 1px solid #ccc;
   padding: 20px;
   border-radius: 5px;
   max-width: 400px;
@@ -83,7 +82,7 @@ button:disabled {
 }
 
 label {
-  font-weight: bold;
+  letter-spacing: -0.02em;
   font-family: 'Montserrat', sans-serif; 
 }
 
@@ -138,17 +137,17 @@ label.required::after {
   display: flex;
   align-items: center;
   gap: 5px; /* Adjust gap to bring text closer to the checkbox */
-  margin: 10px 0;
+  margin: 24px 0 24px 0; 
 }
 
 .contactless-delivery input[type="checkbox"] {
-  margin: 0; /* Remove default margin */
-  padding: 0; /* Remove default padding */
+  margin: 0; 
+  padding: 0; 
   padding-right: 1rem;
-  border: none; /* Remove default border */
-  outline: none; /* Remove outline if any */
-  width: auto; /* Ensure checkbox maintains its size */
-  height: auto; /* Ensure checkbox maintains its size */
+  border: none;
+  outline: none;
+  width: auto; 
+  height: auto; 
 }
   
 .delivery-instructions {
@@ -161,4 +160,8 @@ textarea {
   font-family: 'Montserrat', sans-serif; 
   resize: vertical; /* Allow vertical resize only */
   max-height: 200px; /* Limit maximum height */
+}
+
+.react-datepicker {
+  margin-top: 10px;
 }
