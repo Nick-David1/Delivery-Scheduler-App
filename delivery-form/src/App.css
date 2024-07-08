@@ -216,7 +216,7 @@ h1 {
   font-weight: 600 !important;
 }
 
-p {
+.disclaimer{
   margin-top: 12px;
   font-family: 'Montserrat', sans-serif; 
   letter-spacing: -0.02em;
@@ -224,4 +224,10 @@ p {
   font-size: 12px;
   font-weight: 500;
 
+}
+
+.success-page {
+  text-align: center;
+  margin-top: 50px;
+  font-family: 'Montserrat', sans-serif !important;
 }

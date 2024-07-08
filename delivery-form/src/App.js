@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import './App.css';
 import { format, addDays, getHours, getDay, startOfDay } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -9,6 +11,17 @@ import InputMask from 'react-input-mask';
 const TIMEZONE = 'America/Denver';
 
 function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Form />} />
+        <Route path="/success" element={<SuccessPage />} />
+      </Routes>
+    </Router>
+  );
+}
+
+function Form() {
   const [orderNumber, setOrderNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -26,6 +39,8 @@ function App() {
   const [addressSelected, setAddressSelected] = useState(false);
   const [contactlessDelivery, setContactlessDelivery] = useState(false);
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUnavailableDates = async () => {
@@ -156,6 +171,7 @@ function App() {
       const data = await response.json();
       console.log('Success:', data);
       setSuccessMessage('Order details submitted successfully!');
+      navigate('/success', { state: { deliveryDate: zonedDeliveryDate, email } });
     } catch (error) {
       console.error('Error:', error);
       setError('Error submitting order details.');
@@ -346,12 +362,25 @@ function App() {
           </div>
             
         )}
-      <p> Disclaimer: Apartment stairwells, house stairwells, or basement deliveries cost an extra $60, payable at delivery via cash, Venmo, or Zelle to the third-party. </p>
+      <p className="disclaimer"> Disclaimer: Apartment stairwells, house stairwells, or basement deliveries cost an extra $60, payable at delivery via cash, Venmo, or Zelle to the third-party. </p>
 
         {error && <div className="error">{error}</div>}
         {successMessage && <div className="success">{successMessage}</div>}
         <button className="submitbutton" type="submit">Schedule Now</button>
       </form>
+    </div>
+  );
+}
+
+function SuccessPage() {
+  const location = useLocation();
+  const { deliveryDate, email } = location.state;
+
+  return (
+    <div className="success-page">
+      <h1>Submission Successful</h1>
+      <p>Your delivery date is on {format(deliveryDate, 'MMMM d, yyyy')}</p>
+      <p>A confirmation email has been sent to: {email}</p>
     </div>
   );
 }
