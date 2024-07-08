@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
+const nodemailer = require('nodemailer');
 const { addDays, format, isAfter, startOfDay, getHours, getDay, isBefore, parseISO } = require('date-fns');
 
 dotenv.config();
@@ -43,6 +44,28 @@ const getAllowedDateWindow = () => {
 };
 
 const isSunday = (date) => getDay(date) === 0;
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+const sendConfirmationEmail = (to, deliveryDate) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: to,
+    subject: 'Delivery Confirmation',
+    text: `Your delivery date is confirmed for ${format(deliveryDate, 'MMMM dd, yyyy')}.`
+  };
+
+  // Uncomment the next line to send the email
+  // return transporter.sendMail(mailOptions);
+  console.log('Mock email sending: ', mailOptions);
+  return Promise.resolve();
+};
 
 app.get('/api/unavailable-dates', async (req, res) => {
   const { start, end } = getAllowedDateWindow();
@@ -140,6 +163,9 @@ app.post('/api/submit', async (req, res) => {
         },
       });
     }
+
+    // Mock email sending
+    await sendConfirmationEmail(email, selectedDate);
 
     console.log('Response from Sheets API:', existingResponse.data);
     res.json({ message: 'Order details submitted successfully' });

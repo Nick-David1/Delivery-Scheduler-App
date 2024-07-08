@@ -171,7 +171,7 @@ function Form() {
       const data = await response.json();
       console.log('Success:', data);
       setSuccessMessage('Order details submitted successfully!');
-      navigate('/success', { state: { deliveryDate: zonedDeliveryDate, email } });
+      navigate('/success', { state: { deliveryDate: deliveryDate.toISOString(), email } });
     } catch (error) {
       console.error('Error:', error);
       setError('Error submitting order details.');
@@ -379,7 +379,7 @@ function SuccessPage() {
   return (
     <div className="success-page">
       <h1>Submission Successful</h1>
-      <p>Your delivery date is on {format(deliveryDate, 'MMMM d, yyyy')}</p>
+      <p>Your delivery date is on {format(new Date(deliveryDate), 'MMMM d, yyyy')}</p>
       <p>A confirmation email has been sent to: {email}</p>
     </div>
   );
