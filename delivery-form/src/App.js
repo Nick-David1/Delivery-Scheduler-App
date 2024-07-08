@@ -202,6 +202,7 @@ function App() {
   return (
     <div className="App">
       <form onSubmit={handleSubmit}>
+        <h1>Schedule Delivery</h1>
         <label htmlFor="orderNumber" className="required">Order #</label>
         <input
           type="text"
@@ -328,24 +329,28 @@ function App() {
             checked={contactlessDelivery}
             onChange={() => setContactlessDelivery(!contactlessDelivery)}
           />
-          <label htmlFor="contactlessDelivery">Contactless Delivery?</label>
+          <label className="cd-padding" htmlFor="contactlessDelivery">Request Contactless Delivery</label>
         </div>
 
         {contactlessDelivery && (
           <div className="delivery-instructions">
-            <label htmlFor="deliveryInstructions">Delivery Instructions</label>
+            <label htmlFor="deliveryInstructions"></label>
             <textarea
               id="deliveryInstructions"
+              placeholder="Add special delivery instructions (e.g., setup in living room, access code 1234, use side entrance, etc.)"
               value={deliveryInstructions}
               onChange={handleDeliveryInstructionsChange}
               maxLength={1000}
             />
+          
           </div>
+            
         )}
+      <p> Disclaimer: Apartment stairwells, house stairwells, or basement deliveries cost an extra $60, payable at delivery via cash, Venmo, or Zelle to the third-party. </p>
 
         {error && <div className="error">{error}</div>}
         {successMessage && <div className="success">{successMessage}</div>}
-        <button type="submit">Schedule Now</button>
+        <button className="submitbutton" type="submit">Schedule Now</button>
       </form>
     </div>
   );

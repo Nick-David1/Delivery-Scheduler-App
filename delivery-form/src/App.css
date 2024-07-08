@@ -7,17 +7,18 @@
 form {
   padding: 20px;
   border-radius: 5px;
-  max-width: 400px;
+  max-width: 450px;
   margin: 0 auto;
   font-family: 'Montserrat', sans-serif; 
 }
 
 input, textarea {
-  width: calc(100% - 20px);
+  width: 100%;
   padding: 10px;
   margin: 10px 0 24px 0; 
   border: 1px solid #ccc;
   border-radius: 5px;
+  height: 50px;
   font-family: 'Montserrat', sans-serif; 
 }
 
@@ -32,8 +33,17 @@ input.error, textarea.error {
   border-color: red;
 }
 
+.submitbutton{
+  width: 100%;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 16px;
+  padding: 12px 32px; 
+  margin-top: 24px;
+}
+
 button {
-  padding: 10px 20px;
   color: white;
   border: none;
   border-radius: 5px;
@@ -47,6 +57,8 @@ button:disabled {
   background-color: grey;
   font-family: 'Montserrat', sans-serif; 
 }
+
+
 
 .error {
   color: red;
@@ -62,6 +74,7 @@ button:disabled {
   display: flex;
   gap: 10px;
   font-family: 'Montserrat', sans-serif; 
+  width: 100%;
 }
 
 .address-fields {
@@ -83,6 +96,8 @@ button:disabled {
 
 label {
   letter-spacing: -0.02em;
+  line-height: 1.8;
+  font-size: 14px;
   font-family: 'Montserrat', sans-serif; 
 }
 
@@ -92,12 +107,22 @@ label.required::after {
   margin-left: 5px;
 }
 
+
+
 .react-datepicker__day--today {
-  background-color: transparent !important;
   border-width: 1px !important;
+  border-style: solid !important;
   border-color: #65c358 !important;
+  background-color: #fff !important;
   font-family: 'Montserrat', sans-serif; 
+  font-weight: 400 !important; /* Or any valid font-weight value */
+  border-radius: 5px;
 }
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #fff !important;
+}
+
 
 .react-datepicker-wrapper {
   width: 100%;
@@ -105,7 +130,9 @@ label.required::after {
 
 .react-datepicker {
   font-family: 'Montserrat', sans-serif; 
+  
 }
+
 
 .react-datepicker__input-container input {
   width: 100%;
@@ -136,22 +163,31 @@ label.required::after {
 .contactless-delivery {
   display: flex;
   align-items: center;
-  gap: 5px; /* Adjust gap to bring text closer to the checkbox */
+  gap: 5px;
   margin: 24px 0 24px 0; 
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 .contactless-delivery input[type="checkbox"] {
   margin: 0; 
   padding: 0; 
+  padding-bottom: 0;
+  margin-bottom: 0;
   padding-right: 1rem;
   border: none;
   outline: none;
   width: auto; 
   height: auto; 
 }
+
+.cd-padding{
+  padding-top: 0;
+  margin-top: 0;
+}
   
 .delivery-instructions {
-  margin-top: 10px;
+  margin-top: 0px;
 }
 
 textarea {
@@ -164,4 +200,28 @@ textarea {
 
 .react-datepicker {
   margin-top: 10px;
+}
+
+h1 {
+  font-family: 'Montserrat', sans-serif; 
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #65c358;
+}
+
+.react-datepicker__current-month {
+  font-weight: 600 !important;
+}
+
+p {
+  margin-top: 12px;
+  font-family: 'Montserrat', sans-serif; 
+  letter-spacing: -0.02em;
+  color: #ff4d4d;
+  font-size: 12px;
+  font-weight: 500;
+
 }
