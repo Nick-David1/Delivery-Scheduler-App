@@ -231,3 +231,9 @@ h1 {
   margin-top: 50px;
   font-family: 'Montserrat', sans-serif !important;
 }
+
+p {
+  margin-top: 12px;
+  font-size: 12px;
+  letter-spacing: -0.02em;
+}

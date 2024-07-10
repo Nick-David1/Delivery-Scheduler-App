@@ -326,6 +326,7 @@ function Form() {
         )}
 
         <label htmlFor="deliveryDate" className="required label-with-padding">Delivery Date</label>
+        <p> We will send you an email with your estimated time block the night before, followed by a call 30 minutes prior to our arrival. </p>
         <div>
           <DatePicker
             selected={deliveryDate}
