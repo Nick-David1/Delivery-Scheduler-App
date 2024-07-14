@@ -225,6 +225,7 @@ function Form() {
           id="orderNumber"
           value={orderNumber}
           onChange={handleOrderNumberChange}
+          maxLength={500}
         />
         
         <label htmlFor="name" className="required">Name</label>
@@ -235,6 +236,7 @@ function Form() {
             placeholder="First Name"
             value={firstName}
             onChange={handleInputChange(setFirstName, 'firstName')}
+            maxLength={500}
           />
           <input
             type="text"
@@ -242,6 +244,7 @@ function Form() {
             placeholder="Last Name"
             value={lastName}
             onChange={handleInputChange(setLastName, 'lastName')}
+            maxLength={500}
           />
         </div>
 
@@ -252,6 +255,7 @@ function Form() {
           placeholder="Enter valid email"
           value={email}
           onChange={handleInputChange(setEmail, 'email')}
+          maxLength={500}
         />
 
         <label htmlFor="phoneNumber" className="required">Phone Number</label>
@@ -275,6 +279,7 @@ function Form() {
           placeholder="Enter a location"
           value={streetAddress}
           onChange={handleInputChange(setStreetAddress, 'streetAddress')}
+          maxLength={500}
         />
 
         {addressSelected && (
@@ -287,6 +292,7 @@ function Form() {
                   id="streetAddress2"
                   value={streetAddress2}
                   onChange={(e) => setStreetAddress2(e.target.value)}
+                  maxLength={500}
                 />
               </div>
 
@@ -297,6 +303,7 @@ function Form() {
                   id="city"
                   value={city}
                   onChange={handleInputChange(setCity, 'city')}
+                  maxLength={500}
                 />
               </div>
             </div>
@@ -309,6 +316,7 @@ function Form() {
                   id="state"
                   value={state}
                   onChange={handleInputChange(setState, 'state')}
+                  maxLength={500}
                 />
               </div>
 
@@ -319,6 +327,7 @@ function Form() {
                   id="zipCode"
                   value={zipCode}
                   onChange={handleInputChange(setZipCode, 'zipCode')}
+                  maxLength={500}
                 />
               </div>
             </div>

@@ -5,6 +5,7 @@ const { google } = require('googleapis');
 const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 const { addDays, format, isAfter, startOfDay, getHours, getDay, isBefore, parseISO } = require('date-fns');
+const { toZonedTime } = require('date-fns-tz');
 
 dotenv.config();
 
@@ -34,12 +35,19 @@ const sheets = google.sheets({ version: 'v4', auth });
 
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 
+const TIME_ZONE = 'America/Denver';
 const getAllowedDateWindow = () => {
-  const today = new Date();
+  const today = toZonedTime(new Date(), TIME_ZONE);
   const currentHour = getHours(today);
-  const daysToAdd = currentHour >= 19 ? 4 : 3;
-  const start = startOfDay(today);
-  const end = startOfDay(addDays(today, daysToAdd));
+
+  let start = today;
+  let end = startOfDay(addDays(today, 3));
+
+  if (currentHour >= 19) {
+    start = addDays(today, 1);
+    end = startOfDay(addDays(today, 4));
+  }
+
   return { start, end };
 };
 
@@ -53,18 +61,32 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const sendConfirmationEmail = (to, deliveryDate) => {
+const sendConfirmationEmail = (to, deliveryDate, name) => {
+  const firstName = name.split(' ')[0];
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: to,
-    subject: 'Delivery Confirmation',
-    text: `Your delivery date is confirmed for ${format(deliveryDate, 'MMMM dd, yyyy')}.`
+    subject: 'Delivery Date Confirmation',
+    html: `
+      <p>Dear ${firstName},</p>
+      <p>Thank you for scheduling your delivery with SellBuddy. We have confirmed your selected delivery date of <strong>${format(deliveryDate, 'MMMM dd, yyyy')}</strong>.</p>
+      <p><strong>You will receive another email with your estimated time block the night before your delivery.</strong> Additionally, our third-party delivery service will call you 30 minutes before we arrive on the day of delivery to ensure you are ready.</p>
+      <p>If you need to reschedule your delivery date, please use the following link: [Reschedule Link].</p>
+      <p>For any assistance, you can reach us at (720) 689-4656. Our customer support hours are:</p>
+      <ul>
+        <li>Weekdays: 11 AM - 7 PM</li>
+        <li>Weekends: 11 AM - 5 PM</li>
+      </ul>
+      <p>Thank you for choosing SellBuddy. We appreciate your business.</p>
+      <p>Best regards,</p>
+      <p>The SellBuddy Team</p>
+    `
   };
 
   // Uncomment the next line to send the email
-  // return transporter.sendMail(mailOptions);
-  console.log('Mock email sending: ', mailOptions);
-  return Promise.resolve();
+  return transporter.sendMail(mailOptions);
+  //console.log('Mock email sending: ', mailOptions);
+  //return Promise.resolve();
 };
 
 app.get('/api/unavailable-dates', async (req, res) => {
@@ -164,8 +186,8 @@ app.post('/api/submit', async (req, res) => {
       });
     }
 
-    // Mock email sending
-    await sendConfirmationEmail(email, selectedDate);
+    // Send the confirmation email
+    await sendConfirmationEmail(email, selectedDate, name);
 
     console.log('Response from Sheets API:', existingResponse.data);
     res.json({ message: 'Order details submitted successfully' });
